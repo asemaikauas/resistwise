@@ -1,0 +1,672 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .patients-container {
+        margin: -30px auto;
+        padding-left: 2.5rem;
+        padding-right: 2.5rem;
+        padding-top: 2rem;
+        max-width: 1200px;
+    }
+
+    .patients-header {
+        margin-bottom: 1rem;
+        font-size: 2rem;
+        font-weight: 600;
+        color: rgba(15, 20, 23, 1);
+        text-align: left;
+    }
+
+    .patients-subtitle {
+        font-weight: 400;
+        margin-bottom: 0.5rem;
+        color: rgba(92, 115, 138, 1);
+        line-height: 21px;
+        letter-spacing: 0;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .search-container {
+        background: rgba(248, 249, 250, 1);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 0.5rem;
+        margin-left: -21px;
+    }
+
+    .search-input-container {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 45px;
+        border: 1px solid rgba(222, 226, 230, 1);
+        border-radius: 8px;
+        font-size: 16px;
+        background: rgba(232, 237, 245, 1);
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+        border-color: rgba(74, 144, 226, 1);
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+
+    .search-input::placeholder {
+        color: rgba(134, 142, 150, 1);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(134, 142, 150, 1);
+        width: 18px;
+        height: 18px;
+    }
+
+    .filters-container {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+        color: rgba(232, 237, 245, 1);
+    }
+
+    .filter-dropdown {
+        position: relative;
+        min-width: 120px;
+    }
+
+    .filter-button {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 16px;
+        background: rgba(232, 237, 245, 1);
+        border: 1px solid rgba(232, 237, 245, 1);
+        border-radius: 16px;
+        cursor: pointer;
+        font-size: 14px;
+        color: rgba(15, 20, 23, 1);
+        transition: all 0.2s;
+        min-width: 100%;
+    }
+
+    .filter-button:hover {
+        border-color: rgba(74, 144, 226, 1);
+    }
+
+    .filter-button.active {
+        border-color: rgba(74, 144, 226, 1);
+        background: rgba(74, 144, 226, 0.05);
+    }
+
+    .filter-arrow {
+        width: 25px;
+        height: 25px;
+        color: rgba(134, 142, 150, 1);
+        transition: transform 0.2s;
+    }
+
+    .filter-button.active .filter-arrow {
+        transform: rotate(180deg);
+    }
+
+    .filter-dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid rgba(222, 226, 230, 1);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        margin-top: 4px;
+        display: none;
+    }
+
+    .filter-dropdown-menu.show {
+        display: block;
+    }
+
+    .filter-option {
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        color: rgba(15, 20, 23, 1);
+        transition: background-color 0.2s;
+    }
+
+    .filter-option:hover {
+        background: rgba(248, 249, 250, 1);
+    }
+
+    .filter-option.selected {
+        background: rgba(74, 144, 226, 0.1);
+        color: rgba(74, 144, 226, 1);
+    }
+
+    .clear-filters {
+        background: none;
+        border: none;
+        color: rgba(74, 144, 226, 1);
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: underline;
+    }
+
+    .clear-filters:hover {
+        color: rgba(60, 120, 200, 1);
+    }
+
+    .results-count {
+        color: rgba(134, 142, 150, 1);
+        font-size: 14px;
+        margin-bottom: 1rem;
+    }
+
+    .patients-table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(233, 236, 239, 1);
+        overflow: hidden;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .patients-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    .table-header {
+        margin-top: -10px;
+        background: rgba(248, 249, 250, 1);
+        border-bottom: 1px solid rgba(222, 226, 230, 1);
+    }
+
+    .table-header th {
+        padding: 15px 25px;
+        text-align: left;
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(15, 20, 23, 1);
+        border-bottom: 1px solid rgba(222, 226, 230, 1);
+    }
+
+    .table-header th:nth-child(1) {
+        width: 20%;
+        text-align: left;
+    }
+
+    .table-header th:nth-child(2) {
+        width: 12%;
+        text-align: left;
+    }
+
+    .table-header th:nth-child(3) {
+        width: 15%;
+        text-align: left;
+    }
+
+    .table-header th:nth-child(4) {
+        width: 12%;
+        text-align: left;
+    }
+
+    .table-header th:nth-child(5) {
+        width: 15%;
+        text-align: left;
+    }
+
+    .table-row {
+        border-bottom: 1px solid rgba(248, 249, 250, 1);
+        transition: background-color 0.2s;
+    }
+
+    .table-row:hover {
+        background: rgba(248, 249, 250, 0.5);
+    }
+
+    .table-row:last-child {
+        border-bottom: none;
+    }
+
+    .table-cell {
+        padding: 25px 25px;
+        font-size: 14px;
+        color: rgba(15, 20, 23, 1);
+        vertical-align: top;
+        word-wrap: break-word;
+        overflow: hidden;
+    }
+
+    .table-cell:nth-child(1) {
+        text-align: left;
+    }
+
+    .table-cell:nth-child(2) {
+        text-align: left;
+    }
+
+    .table-cell:nth-child(3) {
+        text-align: left;
+    }
+
+    .table-cell:nth-child(4) {
+        text-align: left;
+    }
+
+    .table-cell:nth-child(5) {
+        text-align: left;
+    }
+
+    .patient-name {
+        font-weight: 500;
+        color: rgba(15, 20, 23, 1);
+    }
+
+    .patient-age {
+        color: rgba(74, 144, 226, 1);
+        font-weight: 500;
+    }
+
+    .patient-gender {
+        color: rgba(92, 115, 138, 1);
+    }
+
+    .patient-diagnosis {
+        color: rgba(74, 144, 226, 1);
+    }
+
+    .patient-date {
+        color: rgba(134, 142, 150, 1);
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: rgba(134, 142, 150, 1);
+        font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
+        .patients-container {
+            padding: 1rem;
+        }
+
+        .filters-container {
+            flex-direction: column;
+        }
+
+        .filter-dropdown {
+            min-width: 100%;
+        }
+
+        .patients-table-container {
+            overflow-x: auto;
+        }
+
+        .patients-table {
+            min-width: 600px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="patients-container">
+    <h1 class="patients-header">Пациенты</h1>
+    <p class="patients-subtitle">Просматривайте и управляйте пациентами</p>
+
+    <!-- Поиск и фильтры -->
+    <div class="search-container">
+        <div class="search-input-container">
+            <svg class="search-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd"
+                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                    clip-rule="evenodd"></path>
+            </svg>
+            <input type="text" class="search-input" placeholder="Поиск пациентов" id="searchInput">
+        </div>
+
+        <div class="filters-container">
+            <!-- Фильтр по возрасту -->
+            <div class="filter-dropdown">
+                <button class="filter-button" id="ageFilter">
+                    <span>Возраст</span>
+                    <svg class="filter-arrow" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <div class="filter-dropdown-menu" id="ageFilterMenu">
+                    <div class="filter-option" data-value="">Все возрасты</div>
+                    <div class="filter-option" data-value="0-18">0-18 лет</div>
+                    <div class="filter-option" data-value="19-35">19-35 лет</div>
+                    <div class="filter-option" data-value="36-55">36-55 лет</div>
+                    <div class="filter-option" data-value="56+">56+ лет</div>
+                </div>
+            </div>
+
+            <!-- Фильтр по полу -->
+            <div class="filter-dropdown">
+                <button class="filter-button" id="genderFilter">
+                    <span>Пол</span>
+                    <svg class="filter-arrow" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <div class="filter-dropdown-menu" id="genderFilterMenu">
+                    <div class="filter-option" data-value="">Все</div>
+                    <div class="filter-option" data-value="Мужчина">Мужчина</div>
+                    <div class="filter-option" data-value="Женщина">Женщина</div>
+                </div>
+            </div>
+
+            <!-- Фильтр по диагнозу -->
+            <div class="filter-dropdown">
+                <button class="filter-button" id="diagnosisFilter">
+                    <span>Диагноз</span>
+                    <svg class="filter-arrow" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <div class="filter-dropdown-menu" id="diagnosisFilterMenu">
+                    <div class="filter-option" data-value="">Все диагнозы</div>
+                    <div class="filter-option" data-value="Пневмония">Пневмония</div>
+                    <div class="filter-option" data-value="UTI">UTI</div>
+                    <div class="filter-option" data-value="Сепсис">Сепсис</div>
+                    <div class="filter-option" data-value="Cellulitis">Cellulitis</div>
+                    <div class="filter-option" data-value="MRSA">MRSA</div>
+                </div>
+            </div>
+
+            <button class="clear-filters" id="clearFilters">Очистить фильтры</button>
+        </div>
+    </div>
+
+    <!-- Счетчик результатов -->
+
+    <!-- Таблица пациентов -->
+    <div class="patients-table-container">
+        <table class="patients-table">
+            <thead class="table-header">
+                <tr>
+                    <th>Имя</th>
+                    <th>Возраст</th>
+                    <th>Пол</th>
+                    <th>Диагноз</th>
+                    <th>Последний визит</th>
+                </tr>
+            </thead>
+            <tbody id="patientsTableBody">
+                <tr class="table-row" data-name="Ержан Нуртаев" data-age="35" data-gender="Мужчина"
+                    data-diagnosis="Пневмония">
+                    <td class="table-cell patient-name">Ержан Нуртаев</td>
+                    <td class="table-cell patient-age">35</td>
+                    <td class="table-cell patient-gender">Мужчина</td>
+                    <td class="table-cell patient-diagnosis">Пневмония</td>
+                    <td class="table-cell patient-date">2025-11-15</td>
+                </tr>
+                <tr class="table-row" data-name="Асел Куанышбаева" data-age="42" data-gender="Женщина"
+                    data-diagnosis="UTI">
+                    <td class="table-cell patient-name">Асел Куанышбаева</td>
+                    <td class="table-cell patient-age">42</td>
+                    <td class="table-cell patient-gender">Женщина</td>
+                    <td class="table-cell patient-diagnosis">UTI</td>
+                    <td class="table-cell patient-date">2025-11-10</td>
+                </tr>
+                <tr class="table-row" data-name="Данияр Султанбеков" data-age="60" data-gender="Мужчина"
+                    data-diagnosis="Сепсис">
+                    <td class="table-cell patient-name">Данияр Султанбеков</td>
+                    <td class="table-cell patient-age">60</td>
+                    <td class="table-cell patient-gender">Мужчина</td>
+                    <td class="table-cell patient-diagnosis">Сепсис</td>
+                    <td class="table-cell patient-date">2025-11-05</td>
+                </tr>
+                <tr class="table-row" data-name="Жанара Ермекова" data-age="28" data-gender="Женщина"
+                    data-diagnosis="Cellulitis">
+                    <td class="table-cell patient-name">Жанара Ермекова</td>
+                    <td class="table-cell patient-age">28</td>
+                    <td class="table-cell patient-gender">Женщина</td>
+                    <td class="table-cell patient-diagnosis">Cellulitis</td>
+                    <td class="table-cell patient-date">2025-10-30</td>
+                </tr>
+                <tr class="table-row" data-name="Бексат Айтжанов" data-age="50" data-gender="Мужчина"
+                    data-diagnosis="MRSA">
+                    <td class="table-cell patient-name">Бексат Айтжанов</td>
+                    <td class="table-cell patient-age">50</td>
+                    <td class="table-cell patient-gender">Мужчина</td>
+                    <td class="table-cell patient-diagnosis">MRSA</td>
+                    <td class="table-cell patient-date">2025-10-25</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="no-results" id="noResults" style="display: none;">
+            Пациенты не найдены
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchInput');
+        const tableBody = document.getElementById('patientsTableBody');
+        const noResults = document.getElementById('noResults');
+        const resultsCount = document.getElementById('resultsCount');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+
+        // Состояние фильтров
+        const filters = {
+            search: '',
+            age: '',
+            gender: '',
+            diagnosis: ''
+        };
+
+        // Исходные данные пациентов
+        const allRows = Array.from(tableBody.querySelectorAll('.table-row'));
+
+        // Обработка выпадающих меню
+        document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+            const button = dropdown.querySelector('.filter-button');
+            const menu = dropdown.querySelector('.filter-dropdown-menu');
+            const filterId = button.id.replace('Filter', '');
+
+            button.addEventListener('click', function (e) {
+                e.stopPropagation();
+
+                // Закрыть все другие меню
+                document.querySelectorAll('.filter-dropdown-menu').forEach(otherMenu => {
+                    if (otherMenu !== menu) {
+                        otherMenu.classList.remove('show');
+                        otherMenu.parentElement.querySelector('.filter-button').classList.remove('active');
+                    }
+                });
+
+                // Переключить текущее меню
+                menu.classList.toggle('show');
+                button.classList.toggle('active');
+            });
+
+            // Обработка выбора опций
+            menu.addEventListener('click', function (e) {
+                if (e.target.classList.contains('filter-option')) {
+                    const value = e.target.dataset.value;
+                    const text = e.target.textContent;
+
+                    // Обновить состояние фильтра
+                    filters[filterId] = value;
+
+                    // Обновить текст кнопки
+                    button.querySelector('span').textContent = value ? text : getDefaultText(filterId);
+
+                    // Обновить выделение опций
+                    menu.querySelectorAll('.filter-option').forEach(option => {
+                        option.classList.remove('selected');
+                    });
+                    e.target.classList.add('selected');
+
+                    // Закрыть меню
+                    menu.classList.remove('show');
+                    button.classList.remove('active');
+
+                    // Применить фильтры
+                    applyFilters();
+                }
+            });
+        });
+
+        // Закрытие меню при клике вне их
+        document.addEventListener('click', function () {
+            document.querySelectorAll('.filter-dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+                menu.parentElement.querySelector('.filter-button').classList.remove('active');
+            });
+        });
+
+        // Поиск
+        searchInput.addEventListener('input', function () {
+            filters.search = this.value.toLowerCase();
+            applyFilters();
+        });
+
+        // Очистка фильтров
+        clearFiltersBtn.addEventListener('click', function () {
+            // Сбросить все фильтры
+            filters.search = '';
+            filters.age = '';
+            filters.gender = '';
+            filters.diagnosis = '';
+
+            // Сбросить поиск
+            searchInput.value = '';
+
+            // Сбросить выпадающие меню
+            document.querySelectorAll('.filter-button').forEach(button => {
+                const filterId = button.id.replace('Filter', '');
+                button.querySelector('span').textContent = getDefaultText(filterId);
+            });
+
+            document.querySelectorAll('.filter-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+
+            // Выделить "все" опции
+            document.querySelectorAll('.filter-dropdown-menu').forEach(menu => {
+                const allOption = menu.querySelector('.filter-option[data-value=""]');
+                if (allOption) allOption.classList.add('selected');
+            });
+
+            applyFilters();
+        });
+
+        function getDefaultText(filterId) {
+            const defaults = {
+                age: 'Возраст',
+                gender: 'Пол',
+                diagnosis: 'Диагноз'
+            };
+            return defaults[filterId];
+        }
+
+        function getAgeGroup(age) {
+            const ageNum = parseInt(age);
+            if (ageNum <= 18) return '0-18';
+            if (ageNum <= 35) return '19-35';
+            if (ageNum <= 55) return '36-55';
+            return '56+';
+        }
+
+        function applyFilters() {
+            let visibleCount = 0;
+
+            allRows.forEach(row => {
+                const name = row.dataset.name.toLowerCase();
+                const age = row.dataset.age;
+                const gender = row.dataset.gender;
+                const diagnosis = row.dataset.diagnosis;
+
+                let isVisible = true;
+
+                // Фильтр поиска (по имени и диагнозу)
+                if (filters.search && !name.includes(filters.search) && !diagnosis.toLowerCase().includes(filters.search)) {
+                    isVisible = false;
+                }
+
+                // Фильтр возраста
+                if (filters.age && getAgeGroup(age) !== filters.age) {
+                    isVisible = false;
+                }
+
+                // Фильтр пола
+                if (filters.gender && gender !== filters.gender) {
+                    isVisible = false;
+                }
+
+                // Фильтр диагноза
+                if (filters.diagnosis && diagnosis !== filters.diagnosis) {
+                    isVisible = false;
+                }
+
+                if (isVisible) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Обновить счетчик результатов
+            if (resultsCount) {
+                resultsCount.textContent = `Показано ${visibleCount} из ${allRows.length} пациентов`;
+            }
+
+            // Показать/скрыть сообщение "не найдено"
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+                tableBody.style.display = 'none';
+            } else {
+                noResults.style.display = 'none';
+                tableBody.style.display = '';
+            }
+        }
+
+        // Обработка клика на строку убрана - никуда не перенаправляем
+
+        // Инициализация - выбрать "все" опции по умолчанию
+        document.querySelectorAll('.filter-dropdown-menu').forEach(menu => {
+            const allOption = menu.querySelector('.filter-option[data-value=""]');
+            if (allOption) allOption.classList.add('selected');
+        });
+
+        // Инициальный подсчет
+        applyFilters();
+    });
+</script>
+
+{% endblock %}

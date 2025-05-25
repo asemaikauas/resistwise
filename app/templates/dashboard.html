@@ -1,0 +1,446 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+  .dashboard-container {
+    margin: 0 auto;
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+    padding-top: 1rem;
+    margin-top: -40px;
+  }
+
+  .dashboard-header {
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    font-weight: 600;
+    color: rgba(15, 20, 23, 1);
+    text-align: left;
+  }
+
+  .dashboard-subtitle {
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+    color: rgba(92, 115, 138, 1);
+    line-height: 21px;
+    letter-spacing: 0;
+    font-size: 14px;
+    text-align: left;
+  }
+
+  .dashboard-content {
+    margin-top: 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 0;
+  }
+
+  .card-title-external {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 24px;
+    letter-spacing: 0;
+    color: rgba(15, 20, 23, 1);
+    text-align: left;
+    margin-bottom: 2rem;
+  }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+  }
+
+  .stat-lable {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 500;
+    color: rgba(15, 20, 23, 1);
+    text-align: left;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 40px;
+    letter-spacing: 0px;
+    color: rgba(15, 20, 23, 1);
+    text-align: left;
+    margin-bottom: 8px;
+  }
+
+  .metric-row {
+    text-align: left;
+  }
+
+  .metric-label {
+    color: rgba(92, 115, 138, 1);
+    font-size: 16px;
+  }
+
+  .metric-change {
+    color: rgba(185, 9, 9, 1);
+    font-size: 16px;
+    font-weight: bold;
+    margin-left: 10px;
+  }
+
+  .chart-container {
+    height: 200px;
+    position: relative;
+    margin-top: 1rem;
+  }
+
+  .chart {
+    width: 100%;
+    height: 100%;
+  }
+
+  .chart-line {
+    stroke: #4a90e2;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  .chart-axis {
+    stroke: #e9ecef;
+    stroke-width: 1;
+  }
+
+  .chart-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: rgba(92, 115, 138, 1);
+  }
+
+  .bacteria-list {
+    list-style: none;
+  }
+
+  .bacteria-item {
+    display: grid;
+    grid-template-columns: 102px 1fr 3px;
+    align-items: center;
+    padding: 0.83rem 0;
+    gap: 1rem;
+  }
+
+  .bacteria-name {
+    color: #6b7280;
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-align: start;
+  }
+
+  .bacteria-bar {
+    height: 24px;
+    background: #e5e7eb;
+    border-radius: 0;
+    position: relative;
+  }
+
+  .bacteria-bar::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: #d1d5db;
+    border-radius: 0;
+  }
+
+  .bacteria-marker {
+    width: 3px;
+    height: 24px;
+    background: #6b7280;
+    border-radius: 0;
+  }
+
+  .bacteria-item:nth-child(1) .bacteria-bar::after {
+    width: 85%;
+  }
+
+  .bacteria-item:nth-child(2) .bacteria-bar::after {
+    width: 78%;
+  }
+
+  .bacteria-item:nth-child(3) .bacteria-bar::after {
+    width: 88%;
+  }
+
+  .bacteria-item:nth-child(4) .bacteria-bar::after {
+    width: 35%;
+  }
+
+  .bacteria-item:nth-child(5) .bacteria-bar::after {
+    width: 45%;
+  }
+
+  .current-label {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Исправленные стили для демографии */
+  .demographics-section {
+    margin-top: 3rem;
+  }
+
+  .demographics-title {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 24px;
+    letter-spacing: 0;
+    color: rgba(15, 20, 23, 1);
+    text-align: left;
+    margin-bottom: 2rem;
+  }
+
+  .demographics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: end;
+    height: 200px;
+    gap: 1rem;
+    margin: 1rem 0;
+    padding: 0 1rem;
+  }
+
+  .bar {
+    background: #e5e7eb;
+    border-radius: 0;
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    padding-bottom: 0.5rem;
+  }
+
+  .bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #6b7280;
+    border-radius: 0;
+  }
+
+  .bar.age-0-18 {
+    height: 20%;
+  }
+
+  .bar.age-19-35 {
+    height: 35%;
+  }
+
+  .bar.age-36-55 {
+    height: 50%;
+  }
+
+  .bar.age-56-75 {
+    height: 80%;
+  }
+
+  .bar.age-75-plus {
+    height: 90%;
+  }
+
+  .age-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    padding: 0 1rem;
+  }
+
+  .gender-chart {
+    display: flex;
+    gap: 2rem;
+    margin: 1rem 0;
+    height: 200px;
+    align-items: end;
+    padding: 0 1rem;
+  }
+
+  .gender-bar {
+    flex: 1;
+    background: #e5e7eb;
+    border-radius: 0;
+    display: flex;
+    align-items: end;
+    justify-content: center;
+    color: #6b7280;
+    font-weight: 500;
+    padding-bottom: 0.5rem;
+    position: relative;
+  }
+
+  .gender-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #6b7280;
+    border-radius: 0;
+  }
+
+  .gender-bar.male {
+    height: 60%;
+  }
+
+  .gender-bar.female {
+    height: 75%;
+  }
+
+  .demographics-section-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-content,
+    .demographics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .dashboard-container {
+      padding: 1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+  <div class="dashboard-container">
+    <h1 class="dashboard-header">Статистика Антибиотикорезистентности</h1>
+    <p class="dashboard-subtitle">Изучите последние тенденции по антибиотикорещистентности в нашей больнице.</p>
+
+    <div class="dashboard-content">
+      <div>
+        <p class="card-title-external">Частота Резистентности во Времени</p>
+        <div class="card">
+          <div class="resistance-stat">
+            <p class="stat-lable">Общий Уровень Резистентности</p>
+            <p class="stat-value">12.5%</p>
+            <p class="metric-row">
+              <span class="metric-label">Последние 12 Месяцев</span>
+              <span class="metric-change">+2.3%</span>
+            </p>
+          </div>
+
+          <div class="chart-container">
+            <svg class="chart" viewBox="0 0 300 120">
+              <path class="chart-line"
+                d="M10,100 C30,100 40,40 60,30 C80,20 90,60 110,70 C130,80 140,50 160,45 C180,40 190,70 210,75 C230,80 240,50 260,45 C280,40 290,20 300,15" />
+            </svg>
+          </div>
+
+          <div class="chart-labels">
+            <span>Янв</span>
+            <span>Фев</span>
+            <span>Мар</span>
+            <span>Апр</span>
+            <span>Май</span>
+            <span>Июнь</span>
+            <span>Июль</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bacteria-content">
+        <p class="card-title-external">Бактериальные Возбудители</p>
+        <div class="card">
+          <div class="resistance-stat">
+            <p class="stat-lable">Резистентность по Возбудителям</p>
+            <p class="metric-row">
+              <span class="metric-label">Текущая</span>
+            </p>
+          </div>
+
+          <ul class="bacteria-list">
+            <li class="bacteria-item">
+              <span class="bacteria-name">E. coli</span>
+              <div class="bacteria-bar"></div>
+              <div class="bacteria-marker"></div>
+            </li>
+            <li class="bacteria-item">
+              <span class="bacteria-name">K. pneumoniae</span>
+              <div class="bacteria-bar"></div>
+              <div class="bacteria-marker"></div>
+            </li>
+            <li class="bacteria-item">
+              <span class="bacteria-name">P. aeruginosa</span>
+              <div class="bacteria-bar"></div>
+              <div class="bacteria-marker"></div>
+            </li>
+            <li class="bacteria-item">
+              <span class="bacteria-name">S. aureus</span>
+              <div class="bacteria-bar"></div>
+              <div class="bacteria-marker"></div>
+            </li>
+            <li class="bacteria-item">
+              <span class="bacteria-name">A. baumannii</span>
+              <div class="bacteria-bar"></div>
+              <div class="bacteria-marker"></div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Исправленная секция демографии -->
+    <div class="demographics-section">
+      <h2 class="demographics-title">Демография Пациентов</h2>
+      <div class="demographics-grid">
+        <div class="card">
+          <h3 class="demographics-section-title">Возрастное Распределение Резистентности</h3>
+          <div class="current-label">Текущее</div>
+          <div class="bar-chart">
+            <div class="bar age-0-18"></div>
+            <div class="bar age-19-35"></div>
+            <div class="bar age-36-55"></div>
+            <div class="bar age-56-75"></div>
+            <div class="bar age-75-plus"></div>
+          </div>
+          <div class="age-labels">
+            <span>0-18</span>
+            <span>19-35</span>
+            <span>36-55</span>
+            <span>56-75</span>
+            <span>75+</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="demographics-section-title">Распределение Полов</h3>
+          <div class="current-label">Текущее</div>
+          <div class="gender-chart">
+            <div class="gender-bar male">Male</div>
+            <div class="gender-bar female">Female</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .profile-container {
+        margin: -30px auto;
+        padding-left: 2.5rem;
+        padding-right: 2.5rem;
+        padding-top: 2rem;
+        max-width: 1200px;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: rgba(74, 144, 226, 1);
+        text-decoration: none;
+        font-size: 14px;
+        margin-bottom: 2rem;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+    }
+
+    .back-button:hover {
+        background: rgba(74, 144, 226, 0.1);
+    }
+
+    .back-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: rgba(15, 20, 23, 1);
+        margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+        font-size: 14px;
+        color: rgba(92, 115, 138, 1);
+        line-height: 1.5;
+    }
+
+    .patient-info-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(233, 236, 239, 1);
+    }
+
+    .patient-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 3rem;
+    }
+
+    .patient-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .patient-details {
+        flex: 1;
+    }
+
+    .patient-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: rgba(15, 20, 23, 1);
+        margin-bottom: 0.25rem;
+    }
+
+    .patient-id {
+        font-size: 14px;
+        color: rgba(92, 115, 138, 1);
+    }
+
+    .edit-button {
+        padding: 8px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+    }
+
+    .edit-button:hover {
+        background: rgba(248, 249, 250, 1);
+    }
+
+    .edit-icon {
+        width: 20px;
+        height: 20px;
+        color: rgba(134, 142, 150, 1);
+    }
+
+    .results-section {
+        margin-top: 2rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: rgba(15, 20, 23, 1);
+        margin-bottom: 2rem;
+    }
+
+    .results-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .result-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(233, 236, 239, 1);
+    }
+
+    .result-card-title {
+        font-size: 16px;
+        font-weight: 500;
+        color: rgba(15, 20, 23, 1);
+        margin-bottom: 1.5rem;
+    }
+
+    .probability-display {
+        margin-bottom: 1rem;
+    }
+
+    .probability-value {
+        font-size: 4rem;
+        font-weight: 700;
+        color: rgba(15, 20, 23, 1);
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .probability-level {
+        font-size: 16px;
+        font-weight: 500;
+        color: rgba(74, 144, 226, 1);
+    }
+
+    .recommendation {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(233, 236, 239, 1);
+    }
+
+    .recommendation-label {
+        font-size: 14px;
+        color: rgba(92, 115, 138, 1);
+        margin-bottom: 0.5rem;
+    }
+
+    .recommendation-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: rgba(15, 20, 23, 1);
+    }
+
+    .reasoning-text {
+        font-size: 14px;
+        color: rgba(92, 115, 138, 1);
+        line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+        .profile-container {
+            padding: 1rem;
+        }
+
+        .results-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .patient-header {
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: center;
+        }
+
+        .probability-value {
+            font-size: 3rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Кнопка "Назад" -->
+    <a href="/history" class="back-button">
+        <svg class="back-icon" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+        </svg>
+        Вернуться к истории
+    </a>
+
+    <!-- Заголовок страницы -->
+    <div class="page-header">
+        <h1 class="page-title">Информация о пациенте</h1>
+        <p class="page-subtitle">Просматривайте и управляйте информацией о пациенте и результатами анализа.</p>
+    </div>
+
+    <!-- Информация о пациенте -->
+    <div class="patient-info-section">
+        <div class="patient-header">
+            <div class="patient-avatar" id="patientAvatar">А</div>
+            <div class="patient-details">
+                <h2 class="patient-name" id="patientName">Аружан Ахметова</h2>
+                <p class="patient-id">ID: <span id="patientId">123456789</span></p>
+            </div>
+            <button class="edit-button">
+                <svg class="edit-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Результаты анализа -->
+        <div class="results-section">
+            <h3 class="section-title">Результаты анализа</h3>
+            
+            <div class="results-grid">
+                <!-- Карточка с вероятностью -->
+                <div class="result-card">
+                    <h4 class="result-card-title">Вероятность антибиотикорезистентности:</h4>
+                    
+                    <div class="probability-display">
+                        <div class="probability-value" id="probabilityValue">76%</div>
+                        <div class="probability-level" id="probabilityLevel">Высокая</div>
+                    </div>
+
+                    <div class="recommendation">
+                        <div class="recommendation-label">Рекомендация:</div>
+                        <div class="recommendation-value" id="recommendationValue">Кларитромицин</div>
+                    </div>
+                </div>
+
+                <!-- Карточка с обоснованием -->
+                <div class="result-card">
+                    <h4 class="result-card-title">Обоснование результата:</h4>
+                    
+                    <p class="reasoning-text" id="reasoningText">
+                        Основными факторами, повлиявшими на результат, стали недавнее назначение карбапенемов, контакт с пациентами с подтверждённой резистентной флорой, госпитализации в течение последних шести месяцев. Самый сильный вклад внесло недавнее назначение карбапенемов.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Получаем параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientName = urlParams.get('name');
+    const probability = urlParams.get('probability');
+    const antibiotic = urlParams.get('antibiotic');
+
+    // Обновляем данные на странице, если параметры есть
+    if (patientName) {
+        document.getElementById('patientName').textContent = patientName;
+        
+        // Обновляем аватар с первой буквой имени
+        const firstLetter = patientName.charAt(0).toUpperCase();
+        document.getElementById('patientAvatar').textContent = firstLetter;
+    }
+    
+    if (probability) {
+        document.getElementById('probabilityValue').textContent = probability + '%';
+        
+        // Определяем уровень вероятности
+        const prob = parseInt(probability);
+        const levelElement = document.getElementById('probabilityLevel');
+        
+        if (prob >= 70) {
+            levelElement.textContent = 'Высокая';
+        } else if (prob >= 30) {
+            levelElement.textContent = 'Средняя';
+        } else {
+            levelElement.textContent = 'Низкая';
+        }
+    }
+    
+    if (antibiotic) {
+        document.getElementById('recommendationValue').textContent = antibiotic;
+    }
+
+    // Генерируем случайный ID пациента для демонстрации
+    const randomId = Math.floor(Math.random() * 900000000) + 100000000;
+    document.getElementById('patientId').textContent = randomId;
+
+    // Обновляем текст обоснования в зависимости от уровня вероятности
+    if (probability) {
+        const prob = parseInt(probability);
+        const reasoningElement = document.getElementById('reasoningText');
+        
+        if (prob >= 70) {
+            reasoningElement.textContent = 'Основными факторами, повлиявшими на результат, стали недавнее назначение карбапенемов, контакт с пациентами с подтверждённой резистентной флорой, госпитализации в течение последних шести месяцев и возраст 78 лет. Самый сильный вклад внесло недавнее назначение карбапенемов.';
+        } else if (prob >= 30) {
+            reasoningElement.textContent = 'Умеренный риск резистентности связан с частичными факторами риска: предыдущая антибактериальная терапия в течение последних 3 месяцев и возраст пациента. Рекомендуется стандартная терапия с мониторингом эффективности.';
+        } else {
+            reasoningElement.textContent = 'Низкий риск резистентности обусловлен отсутствием значимых факторов риска. Пациент не получал антибиотики в последние 6 месяцев, отсутствует контакт с госпитальной средой. Рекомендована стандартная эмпирическая терапия.';
+        }
+    }
+});
+</script>
+
+{% endblock %}

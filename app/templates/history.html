@@ -1,0 +1,554 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .history-container {
+        margin: -30px auto;
+        padding-left: 2.5rem;
+        padding-right: 2.5rem;
+        padding-top: 2rem;
+        max-width: 1200px;
+    }
+
+    .history-header {
+        margin-bottom: 1rem;
+        font-size: 2rem;
+        font-weight: 600;
+        color: rgba(15, 20, 23, 1);
+        text-align: left;
+    }
+
+    .history-subtitle {
+        font-weight: 400;
+        margin-bottom: 2rem;
+        color: rgba(92, 115, 138, 1);
+        line-height: 21px;
+        letter-spacing: 0;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .history-table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(233, 236, 239, 1);
+        overflow: hidden;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    .table-header {
+        background: rgba(248, 249, 250, 1);
+        border-bottom: 1px solid rgba(222, 226, 230, 1);
+    }
+
+    .table-header th {
+        padding: 15px 25px;
+        text-align: left;
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(15, 20, 23, 1);
+        border-bottom: 1px solid rgba(222, 226, 230, 1);
+    }
+
+    .table-header th:nth-child(1) {
+        width: 22%;
+        text-align: left;
+    }
+
+    .table-header th:nth-child(2) {
+        width: 18%;
+        text-align: left;
+    }
+
+    .table-header th:nth-child(3) {
+        width: 23%;
+        text-align: left;
+    }
+
+    .table-header th:nth-child(4) {
+        width: 18%;
+        text-align: left;
+    }
+
+    .table-header th:nth-child(5) {
+        width: 17%;
+        text-align: left;
+    }
+
+    .table-row {
+        border-bottom: 1px solid rgba(248, 249, 250, 1);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .table-row:hover {
+        background: rgba(74, 144, 226, 0.1); 
+        transform: translateY(-1px); 
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
+    }
+
+    .table-row:last-child {
+        border-bottom: none;
+    }
+
+    .table-cell {
+        padding: 25px 25px;
+        font-size: 14px;
+        color: rgba(15, 20, 23, 1);
+        vertical-align: top;
+        word-wrap: break-word;
+        overflow: hidden;
+    }
+
+    .table-cell:nth-child(1) {
+        text-align: left;
+    }
+
+    .table-cell:nth-child(2) {
+        text-align: left;
+    }
+
+    .table-cell:nth-child(3) {
+        text-align: left;
+    }
+
+    .table-cell:nth-child(4) {
+        text-align: left;
+    }
+
+    .table-cell:nth-child(5) {
+        text-align: left;
+    }
+
+    .patient-name {
+        font-weight: 500;
+        color: rgba(15, 20, 23, 1);
+    }
+
+    .probability-value {
+        color: rgba(74, 144, 226, 1);
+        font-weight: 500;
+    }
+
+    .antibiotic-name {
+        color: rgba(74, 144, 226, 1);
+    }
+
+    .result-resistant {
+        background: rgba(248, 215, 218, 1);
+        color: rgba(114, 28, 36, 1);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .result-sensitive {
+        background: rgba(212, 237, 218, 1);
+        color: rgba(21, 87, 36, 1);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .result-missing {
+        background: rgba(255, 243, 205, 1);
+        color: rgba(133, 77, 14, 1);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-block;
+    }
+
+    .test-date {
+        color: rgba(134, 142, 150, 1);
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: rgba(134, 142, 150, 1);
+        font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
+        .history-container {
+            padding: 1rem;
+        }
+
+        .filters-container {
+            flex-direction: column;
+        }
+
+        .filter-dropdown {
+            min-width: 100%;
+        }
+
+        .history-table-container {
+            overflow-x: auto;
+        }
+
+        .history-table {
+            min-width: 700px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="history-container">
+    <h1 class="history-header">История</h1>
+    <p class="history-subtitle">История тестов на антибиотикорезистентность и результаты анализов</p>
+
+    <!-- Скрытый элемент с URL для правильного формирования ссылки -->
+    <div id="info-url" data-url="{{ url_for('main.info') if 'main.info' in url_for.__globals__.get('app', {}).view_functions else '/info' }}" style="display: none;"></div>
+
+    <!-- Таблица истории -->
+    <div class="history-table-container">
+        <table class="history-table">
+            <thead class="table-header">
+                <tr>
+                    <th>Пациент</th>
+                    <th>Предсказанная Вероятность Резистентности</th>
+                    <th>Назначенный антибиотик</th>
+                    <th>Результат посева</th>
+                    <th>Дата теста</th>
+                </tr>
+            </thead>
+            <tbody id="historyTableBody">
+                <tr class="table-row" 
+                    data-patient="Нурсултан Абдрахманов" 
+                    data-probability="85"
+                    data-antibiotic="Ципрофлоксицин" 
+                    data-result="Резистентный">
+                    <td class="table-cell patient-name">Нурсултан Абдрахманов</td>
+                    <td class="table-cell probability-value">85%</td>
+                    <td class="table-cell antibiotic-name">Ципрофлоксицин</td>
+                    <td class="table-cell"><span class="result-resistant">Резистентный</span></td>
+                    <td class="table-cell test-date">2025-11-20</td>
+                </tr>
+                <tr class="table-row" 
+                    data-patient="Айдос Тлеужанов" 
+                    data-probability="20"
+                    data-antibiotic="Амоксициллин" 
+                    data-result="Нерезистентный">
+                    <td class="table-cell patient-name">Айдос Тлеужанов</td>
+                    <td class="table-cell probability-value">20%</td>
+                    <td class="table-cell antibiotic-name">Амоксициллин</td>
+                    <td class="table-cell"><span class="result-sensitive">Нерезистентный</span></td>
+                    <td class="table-cell test-date">2025-11-18</td>
+                </tr>
+                <tr class="table-row" 
+                    data-patient="Мадияр Кайырбеков" 
+                    data-probability="60"
+                    data-antibiotic="Азитромицин" 
+                    data-result="Отсутствует">
+                    <td class="table-cell patient-name">Мадияр Кайырбеков</td>
+                    <td class="table-cell probability-value">60%</td>
+                    <td class="table-cell antibiotic-name">Азитромицин</td>
+                    <td class="table-cell"><span class="result-missing">Отсутствует</span></td>
+                    <td class="table-cell test-date">2025-11-15</td>
+                </tr>
+                <tr class="table-row" 
+                    data-patient="Айнур Жаксылыкова" 
+                    data-probability="10"
+                    data-antibiotic="Доксициклин" 
+                    data-result="Нерезистентный">
+                    <td class="table-cell patient-name">Айнур Жаксылыкова</td>
+                    <td class="table-cell probability-value">10%</td>
+                    <td class="table-cell antibiotic-name">Доксициклин</td>
+                    <td class="table-cell"><span class="result-sensitive">Нерезистентный</span></td>
+                    <td class="table-cell test-date">2025-11-12</td>
+                </tr>
+                <tr class="table-row" 
+                    data-patient="Гаухар Тургунбаева" 
+                    data-probability="95"
+                    data-antibiotic="Цефриаксон" 
+                    data-result="Резистентный">
+                    <td class="table-cell patient-name">Гаухар Тургунбаева</td>
+                    <td class="table-cell probability-value">95%</td>
+                    <td class="table-cell antibiotic-name">Цефриаксон</td>
+                    <td class="table-cell"><span class="result-resistant">Резистентный</span></td>
+                    <td class="table-cell test-date">2025-11-10</td>
+                </tr>
+                <tr class="table-row" 
+                    data-patient="Айдос Жаксылыков" 
+                    data-probability="17"
+                    data-antibiotic="Амоксициллин" 
+                    data-result="Отсутствует">
+                    <td class="table-cell patient-name">Айдос Жаксылыков</td>
+                    <td class="table-cell probability-value">17%</td>
+                    <td class="table-cell antibiotic-name">Амоксициллин</td>
+                    <td class="table-cell"><span class="result-missing">Отсутствует</span></td>
+                    <td class="table-cell test-date">2025-11-08</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="no-results" id="noResults" style="display: none;">
+            Записи не найдены
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchInput');
+        const tableBody = document.getElementById('historyTableBody');
+        const noResults = document.getElementById('noResults');
+        const resultsCount = document.getElementById('resultsCount');
+        const clearFiltersBtn = document.getElementById('clearFilters');
+
+        // Состояние фильтров (если нужно добавить фильтры позже)
+        const filters = {
+            search: '',
+            antibiotic: '',
+            result: '',
+            probability: ''
+        };
+
+        // Исходные данные записей
+        const allRows = Array.from(tableBody.querySelectorAll('.table-row'));
+
+        // Обработка выпадающих меню (если будут добавлены позже)
+        document.querySelectorAll('.filter-dropdown').forEach(dropdown => {
+            const button = dropdown.querySelector('.filter-button');
+            const menu = dropdown.querySelector('.filter-dropdown-menu');
+            const filterId = button.id.replace('Filter', '');
+
+            button.addEventListener('click', function (e) {
+                e.stopPropagation();
+
+                // Закрыть все другие меню
+                document.querySelectorAll('.filter-dropdown-menu').forEach(otherMenu => {
+                    if (otherMenu !== menu) {
+                        otherMenu.classList.remove('show');
+                        otherMenu.parentElement.querySelector('.filter-button').classList.remove('active');
+                    }
+                });
+
+                // Переключить текущее меню
+                menu.classList.toggle('show');
+                button.classList.toggle('active');
+            });
+
+            // Обработка выбора опций
+            menu.addEventListener('click', function (e) {
+                if (e.target.classList.contains('filter-option')) {
+                    const value = e.target.dataset.value;
+                    const text = e.target.textContent;
+
+                    // Обновить состояние фильтра
+                    filters[filterId] = value;
+
+                    // Обновить текст кнопки
+                    button.querySelector('span').textContent = value ? text : getDefaultText(filterId);
+
+                    // Обновить выделение опций
+                    menu.querySelectorAll('.filter-option').forEach(option => {
+                        option.classList.remove('selected');
+                    });
+                    e.target.classList.add('selected');
+
+                    // Закрыть меню
+                    menu.classList.remove('show');
+                    button.classList.remove('active');
+
+                    // Применить фильтры
+                    applyFilters();
+                }
+            });
+        });
+
+        // Закрытие меню при клике вне их
+        document.addEventListener('click', function () {
+            document.querySelectorAll('.filter-dropdown-menu').forEach(menu => {
+                menu.classList.remove('show');
+                menu.parentElement.querySelector('.filter-button').classList.remove('active');
+            });
+        });
+
+        // Поиск (если будет добавлен позже)
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                filters.search = this.value.toLowerCase();
+                applyFilters();
+            });
+        }
+
+        // Очистка фильтров (если будет добавлена позже)
+        if (clearFiltersBtn) {
+            clearFiltersBtn.addEventListener('click', function () {
+                // Сбросить все фильтры
+                filters.search = '';
+                filters.antibiotic = '';
+                filters.result = '';
+                filters.probability = '';
+
+                // Сбросить поиск
+                if (searchInput) searchInput.value = '';
+
+                // Сбросить выпадающие меню
+                document.querySelectorAll('.filter-button').forEach(button => {
+                    const filterId = button.id.replace('Filter', '');
+                    button.querySelector('span').textContent = getDefaultText(filterId);
+                });
+
+                document.querySelectorAll('.filter-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+
+                // Выделить "все" опции
+                document.querySelectorAll('.filter-dropdown-menu').forEach(menu => {
+                    const allOption = menu.querySelector('.filter-option[data-value=""]');
+                    if (allOption) allOption.classList.add('selected');
+                });
+
+                applyFilters();
+            });
+        }
+
+        function getDefaultText(filterId) {
+            const defaults = {
+                antibiotic: 'Антибиотик',
+                result: 'Результат',
+                probability: 'Вероятность'
+            };
+            return defaults[filterId];
+        }
+
+        function getProbabilityGroup(probability) {
+            const prob = parseInt(probability);
+            if (prob >= 70) return 'high';
+            if (prob >= 30) return 'medium';
+            return 'low';
+        }
+
+        function applyFilters() {
+            let visibleCount = 0;
+
+            allRows.forEach(row => {
+                const patient = row.dataset.patient.toLowerCase();
+                const probability = row.dataset.probability;
+                const antibiotic = row.dataset.antibiotic;
+                const result = row.dataset.result;
+
+                let isVisible = true;
+
+                // Фильтр поиска (по пациенту и антибиотику)
+                if (filters.search && !patient.includes(filters.search) && !antibiotic.toLowerCase().includes(filters.search)) {
+                    isVisible = false;
+                }
+
+                // Фильтр антибиотика
+                if (filters.antibiotic && antibiotic !== filters.antibiotic) {
+                    isVisible = false;
+                }
+
+                // Фильтр результата
+                if (filters.result && result !== filters.result) {
+                    isVisible = false;
+                }
+
+                // Фильтр вероятности
+                if (filters.probability && getProbabilityGroup(probability) !== filters.probability) {
+                    isVisible = false;
+                }
+
+                if (isVisible) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Обновить счетчик результатов
+            if (resultsCount) {
+                resultsCount.textContent = `Показано ${visibleCount} из ${allRows.length} записей`;
+            }
+
+            // Показать/скрыть сообщение "не найдено"
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+                tableBody.style.display = 'none';
+            } else {
+                noResults.style.display = 'none';
+                tableBody.style.display = '';
+            }
+        }
+
+        // Инициализация - выбрать "все" опции по умолчанию
+        document.querySelectorAll('.filter-dropdown-menu').forEach(menu => {
+            const allOption = menu.querySelector('.filter-option[data-value=""]');
+            if (allOption) allOption.classList.add('selected');
+        });
+
+        // ОСНОВНАЯ ФУНКЦИЯ ПЕРЕНАПРАВЛЕНИЯ
+        const historyTableBody = document.getElementById('historyTableBody');
+        if (historyTableBody) {
+            historyTableBody.addEventListener('click', function(e) {
+                let row = e.target.closest('.table-row');
+                if (row) {
+                    console.log('Клик по строке:', row);
+                    
+                    const name = row.dataset.patient;
+                    const probability = row.dataset.probability;
+                    const antibiotic = row.dataset.antibiotic;
+                    const result = row.dataset.result;
+                    
+                    console.log('Данные пациента:', { name, probability, antibiotic, result });
+                    
+                    // Получаем базовый URL для info страницы
+                    const infoUrlElement = document.getElementById('info-url');
+                    let baseUrl = '/info';
+                    
+                    if (infoUrlElement && infoUrlElement.dataset.url) {
+                        baseUrl = infoUrlElement.dataset.url;
+                    }
+                    
+                    // Формируем URL с параметрами
+                    const params = new URLSearchParams({
+                        name: name,
+                        probability: probability,
+                        antibiotic: antibiotic,
+                        result: result
+                    });
+                    
+                    const finalUrl = `${baseUrl}?${params.toString()}`;
+                    console.log('Перенаправление на:', finalUrl);
+                    
+                    // Выполняем перенаправление
+                    try {
+                        window.location.href = finalUrl;
+                    } catch (error) {
+                        console.error('Ошибка перенаправления:', error);
+                        // Запасной вариант
+                        window.location.assign(finalUrl);
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+{% endblock %}
