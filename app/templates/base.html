@@ -51,10 +51,10 @@
                     
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" >Логин</a>
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">Логин</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" >Регистрация</a>
+                        <a class="nav-link" href="{{ url_for('auth.signup') }}">Регистрация</a>
                     </li>
                     {% endif %}
                 </ul>
