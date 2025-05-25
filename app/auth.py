@@ -1,26 +1,15 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import User
 from flask_login import login_user, login_required, logout_user, current_user
-
-
-
+from .models import User
 from . import db
 
 auth = Blueprint('auth', __name__)
-
-
 
 @auth.route('/login')
 def login():
     if current_user.is_authenticated: 
         return redirect(url_for('main.dashboard'))
-    return render_template('login.html')
-
-@auth.route('/logout')
-@login_required
-def logout(): 
-    logout_user(); 
     return render_template('login.html')
 
 @auth.route('/login', methods=['POST'])
@@ -38,8 +27,13 @@ def login_post():
     login_user(user, remember=remember)
     return redirect(url_for('main.dashboard'))
 
+@auth.route('/logout')
+@login_required
+def logout(): 
+    logout_user()
+    return redirect(url_for('auth.login'))
 
-@auth.route('/signup', methods=['GET', 'POST'])
+@auth.route('/signup')
 def signup():
     if current_user.is_authenticated: 
         return redirect(url_for('main.dashboard'))
@@ -52,12 +46,13 @@ def signup_post():
     surname = request.form.get('surname')
     password = request.form.get('password')
 
+    # Check if user already exists
     user = User.query.filter_by(email=email).first()
-
     if user: 
         flash('Email address already exists')
         return redirect(url_for('auth.signup'))
     
+    # Create new user
     new_user = User(
         email=email,
         first_name=first_name,
@@ -65,7 +60,12 @@ def signup_post():
         password=generate_password_hash(password, method='pbkdf2:sha256')
     )
 
-    db.session.add(new_user)
-    db.session.commit()
-
-    return redirect(url_for('auth.login'))
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Registration successful! Please log in.')
+        return redirect(url_for('auth.login'))
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Registration failed: {str(e)}')
+        return redirect(url_for('auth.signup'))
