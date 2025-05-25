@@ -7,7 +7,7 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return render_template('signup.html')
+    return render_template_string('please type \signup to the url to get started')
 
 @main.route('/dashboard') 
 @login_required 
